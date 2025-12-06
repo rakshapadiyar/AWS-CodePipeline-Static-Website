@@ -6,7 +6,7 @@ Whenever a commit is pushed to GitHub, the website is automatically rebuilt and 
 
 ---
 
-## 🚀 Architecture Overview
+## Architecture Overview
 
 GitHub → CodePipeline → CodeBuild → S3 Static Website
 
@@ -14,53 +14,72 @@ GitHub → CodePipeline → CodeBuild → S3 Static Website
 - CodeBuild runs the build steps using `buildspec.yml`
 - Build artifacts are deployed to the S3 static website bucket
 
+## Steps
 1. Create the S3 Bucket
 
-Enable Static Website Hosting
+   * Enable Static Website Hosting
+   * Allow public access for testing
+   * Enable static website hosting with index.html as index document.
+   * Add Permissions :
+```
+   {
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::aws-cicd-raksha/*"
+    }
+  ]
+}
 
-Allow public access for testing (or use CloudFront)
-
-Note the Website Endpoint URL
-
+```
+![S3 Bucket created](screenshots/s3.png)
+---
 2. Push Code to GitHub
 
-Include:
-
-HTML files
-
-CSS/JS files
-
-buildspec.yml
-
+    Include:  
+    HTML files  
+    buildspec.yml  
+    (js/css files if any)
+---
 3. Create the CodePipeline
+ * Build Custom Pipeline
+ * Source provider: GitHub (via GitHub App)
+   (Authenticate and establish a connection to teh repository in your GitHub)
+* Select your repository and branch
 
-Source provider: GitHub (via GitHub App)
+* Build provider: CodeBuild
+* Create a new project
+* Runtime: Ubuntu latest  
+* Choose “Use a buildspec file”
+*continue to codepipeline
 
-Select your repository and branch
+* Deploy stage: S3
 
-Build provider: CodeBuild
+* Target: static site bucket
 
-Runtime: Ubuntu latest
+* Extract artifacts: Yes 
+![CodePipeline successfully built](screenshots/codePipeline.png)  
 
-Choose “Use a buildspec file”
-
-Deploy stage: S3
-
-Target: static site bucket
-
-Extract artifacts: Yes
-
+![S3 v1 deployed](screenshots/s3-v1.png)
+---
 4. Test the Pipeline
 
-Make changes in index.html
+    * Make changes in index.html
 
-Commit and push to GitHub
+    * Commit and push to GitHub  
 
-Pipeline runs automatically
+    ![Updated HTML File](screenshots/htmlUpdate.png)
 
-Refresh S3 website URL to see updated site
+    Pipeline runs automatically
 
-📌 How It Works (Simple Overview)
+    Refresh S3 website URL to see updated site
+    ![Updated S3](screenshots/updatedS3.png)
+---
+### Summary
 
 You push code to GitHub
 
